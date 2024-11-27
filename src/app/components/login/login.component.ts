@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { LoadingService } from '../../services/loading.service';
 
 
 @Component({
@@ -19,7 +20,8 @@ export class LoginComponent {
     private fb: FormBuilder,
     private router: Router,
     private authService: AuthService,
-    private snackbar : MatSnackBar
+    private snackbar : MatSnackBar,
+    private loadingService: LoadingService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -31,6 +33,7 @@ export class LoginComponent {
 
   onSubmit() {
     if (this.loginForm.valid) {
+      this.loadingService.show();
       const { email ,password } = this.loginForm.value
       this.authService.login({email,password}).subscribe({
         next: (response)=>{
@@ -40,6 +43,7 @@ export class LoginComponent {
             verticalPosition : 'top'
           })
           this.router.navigate(['/dashboard']);
+          this.loadingService.hide();
         },
         error: (error)=>{
           this.snackbar.open('Login Failed! invalid credentials.','Close',{
@@ -47,6 +51,7 @@ export class LoginComponent {
             verticalPosition: 'top',
             horizontalPosition: 'center'
           })
+          this.loadingService.hide();
         }
       })
     }

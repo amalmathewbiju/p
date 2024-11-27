@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
+import { LoadingService } from '../../services/loading.service';
 
 @Component({
   selector: 'app-navbar',
@@ -12,7 +13,8 @@ export class NavbarComponent implements OnInit{
 
   constructor(
     private authService : AuthService,
-    private router: Router
+    private router: Router,
+    private loadingService: LoadingService
   ){}
 
 
@@ -21,9 +23,16 @@ export class NavbarComponent implements OnInit{
     this.userName = currentUser?.name || '';
   }
 
-  logout(){
-    this.authService.logout();
-    this.router.navigate(['/login'])
+  logout() {
+    this.loadingService.show();
+    this.authService.logout().subscribe({
+      next: () => {
+        this.router.navigate(['/login']);
+        this.loadingService.hide();
+      },
+      complete: () => {
+        this.loadingService.hide();
+      }
+    });
   }
-
 }

@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Expense } from '../models/expense';
-import { map, switchMap } from 'rxjs';
+import { BehaviorSubject, delay, map, switchMap } from 'rxjs';
 import { User } from '../models/user';
 
 
@@ -13,7 +13,8 @@ import { User } from '../models/user';
 
 export class ExpenseService {
 
-  private apiUrl = 'http://localhost:3000/users'
+  private apiUrl = 'http://localhost:3000/users';
+
 
   constructor(private http: HttpClient) { }
 
@@ -41,7 +42,7 @@ export class ExpenseService {
             expenses: updatedExpenses
           });
         })
-      );
+      ,delay(1500));
     }
 
   updateExpense(expense: Expense){
@@ -57,7 +58,7 @@ export class ExpenseService {
           expenses: updatedExpenses
         });
       })
-    );
+      ,delay(1500));
   }
 
   getExpenseByCategory(userId: string) {
