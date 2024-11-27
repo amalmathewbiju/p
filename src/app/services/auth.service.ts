@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { User } from '../models/user';
-import { BehaviorSubject, catchError, map, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, delay, map, Observable, tap, throwError } from 'rxjs';
 
 
 // export interface AuthResponse {
@@ -31,79 +31,6 @@ export class AuthService {
   constructor(private http: HttpClient) { 
     this.loadStoredAuth();
   }
-
-  // registerUser(userData: User){
-  //   return this.http.post<AuthResponse>(`${this.apiUrl}`,userData).pipe(
-  //     map(response=> {
-  //       if(response){
-  //         this.handleAuthentication(response)
-  //       }
-  //         return response;
-  //     }
-  //     )
-      
-  //   )
-  // }
-
-  // login(credentials: { email: string; password: string }){
-  //   return this.http.post<AuthResponse>(`${this.apiUrl}`, credentials).pipe(
-  //     map(response => {
-  //       if(response){
-  //         this.handleAuthentication(response)
-  //       }
-  //       return response
-  //     }
-  //   )
-  // )
-  // }
-
-  // logout(): void {
-  //   localStorage.removeItem('token');
-  //   localStorage.removeItem('user');
-  //   this.currentUserSubject.next(null);
-  //   this.tokenSubject.next(null);
-  // }
-
-  // private handleAuthentication(response: any): void {
-  //   if (response.token) {
-  //     localStorage.setItem('token', response.token);
-  //   }
-  //   if (response.user) {
-  //     localStorage.setItem('user', JSON.stringify(response.user));
-  //     this.currentUserSubject.next(response.user);
-  //     this.tokenSubject.next(response.token);
-  //   }
-  // }
-  
-  // private loadStoredAuth(): void {
-  //   const token = localStorage.getItem('token');
-  //   const userStr = localStorage.getItem('user');
-
-  //   if (token && userStr) {
-  //     try {
-  //       const user = JSON.parse(userStr);
-  //       this.currentUserSubject.next(user);
-  //       this.tokenSubject.next(token);
-  //     } catch (error) {
-  //       this.logout();
-  //     }
-  //   }
-  // }
-
-  // getToken(): string | null {
-  //   return localStorage.getItem('token');
-  // }
-
-  // isLoggedIn(): boolean {
-  //   return !!this.getToken();
-  // }
-
-  // getCurrentUser(): User | null {
-  //   return this.currentUserSubject.value;
-  // }
-
-
-
   registerUser(userData: User) {
     const userWithExpenses = {
       ...userData,expenses: []
@@ -117,7 +44,7 @@ export class AuthService {
         console.error('Registration error:', error);
         return throwError(() => new Error('Failed to register user'));
       })
-    );
+      ,delay(2000));
   }
 
   login(credentials: {email:string,password:string}){
@@ -136,12 +63,18 @@ export class AuthService {
         console.log('Login error: ',error);
         return throwError(()=>new Error('Login Failed'))
       })
-    )
+    ,delay(1500))
   }
 
-  logout(): void {
-    localStorage.removeItem('user');
-    this.currentUserSubject.next(null);
+  logout(){
+    return new Observable(observer => {
+      setTimeout(() => {
+        localStorage.removeItem('user');
+        this.currentUserSubject.next(null);
+        observer.next(true);
+        observer.complete();
+      }, 1000); 
+    });
   }
 
   private storeUser(user: User): void {

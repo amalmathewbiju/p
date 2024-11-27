@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { LoadingService } from '../../services/loading.service';
 
 @Component({
   selector: 'app-register',
@@ -19,7 +20,8 @@ export class RegisterComponent {
     private fb: FormBuilder,
     private authService : AuthService,
     private router: Router,
-    private snackbar : MatSnackBar
+    private snackbar : MatSnackBar,
+    private loadingService: LoadingService
   ){
     this.registerForm = this.fb.group({
       name: ['',[Validators.required, Validators.minLength(3)]],
@@ -45,6 +47,7 @@ export class RegisterComponent {
 
   onSubmit(){
     if(this.registerForm.valid){
+      this.loadingService.show();
       const {name, email, password} = this.registerForm.value;
       this.authService.registerUser( {name, email, password}).subscribe({
         next: (response)=>{
@@ -54,6 +57,7 @@ export class RegisterComponent {
             verticalPosition: 'top'
           });
           this.router.navigate(['/login'])
+          this.loadingService.hide();
         },
         error: (error)=>{
           this.snackbar.open('Registration failed: '+error.message,'Close',{
@@ -61,6 +65,7 @@ export class RegisterComponent {
             horizontalPosition: 'center',
             verticalPosition: 'top'
           })
+          this.loadingService.hide();
         }
       })
  

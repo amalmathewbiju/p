@@ -1,0 +1,24 @@
+<!-- <mat-progress-spinner
+    mode="indeterminate" 
+    [value]="50" 
+    color="primary"
+    diameter="100"
+ /> -->
+ <!-- <div class="spinner-overlay" [class.fullscreen]="fullscreen">
+    <div class="spinner-container">
+       <mat-progress-spinner
+            mode="indeterminate" 
+            [value]="50" 
+            color="accent"
+            diameter="50"
+        />
+      <p *ngIf="message" class="spinner-message">{{ message }}</p>
+    </div>
+  </div> -->
+
+  <div class="spinner-overlay" *ngIf="isLoading$ | async">
+    <div class="spinner-container">
+      <div class="spinner"></div>
+      <p class="loading-text">Loading...</p>
+    </div>
+  </div>

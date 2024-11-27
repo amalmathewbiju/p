@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-not-found',
   template: `
+  <app-matrix-rain/>
+
   <div class="not-found-container">
   <mat-icon class="error-icon">error_outline</mat-icon>
   <h1>404</h1>

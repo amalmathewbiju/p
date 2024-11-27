@@ -9,6 +9,8 @@ import { MatSort } from '@angular/material/sort';
 import { AddExpenseComponent } from '../add-expense/add-expense.component';
 import { MatDialog } from '@angular/material/dialog';
 import { User } from '../../models/user';
+import { LoadingService } from '../../services/loading.service';
+import { DeleteConfirmationComponent } from '../delete-confirmation/delete-confirmation.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -33,7 +35,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   constructor(
     private expenseService: ExpenseService,
     private authService: AuthService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit() {
@@ -70,12 +73,28 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   
 
   deleteExpense(expenseId: number) {
-    const currentUser = this.authService.getCurrentUser();
-    if (currentUser?.id) {
-      this.expenseService.deleteExpense(currentUser.id, expenseId).subscribe(() => {
-        this.loadExpenseData();
-      });
-    }
+    const dialogRef = this.dialog.open(DeleteConfirmationComponent, {
+      width: '400px',
+      panelClass: 'matrix-dialog'
+    });
+    dialogRef.afterClosed().subscribe(res =>{
+      if(res){
+        this.loadingService.show();
+        const currentUser = this.authService.getCurrentUser();
+        if (currentUser?.id) {
+          this.expenseService.deleteExpense(currentUser.id, expenseId).subscribe({
+            next: ()=>{
+              this.loadExpenseData();
+              this.loadingService.hide();
+            },
+            error: ()=>{
+              this.loadingService.hide();
+            }
+          });
+        }
+      }
+    })
+
   }
 
   private calculateStatistics() {
@@ -130,7 +149,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         plugins: {
           legend: {
             position: 'right',
-            labels: { color: 'white', font:{size:16} }
+            labels: { color: 'white', font:{ family: 'monospace',size:16},
+          padding: 20 }
+          }
+        },
+        elements: {
+          arc: {
+            borderWidth: 2,
+            borderColor: '#000'
           }
         }
       }
@@ -163,18 +189,32 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            labels: { color: 'white', font:{size:18} }
+            labels: { color: 'white', font:{family: 'monospace', size:18} }
           }
         },
         scales: {
           y: {
             beginAtZero: true,
-            ticks: { color: 'white' },
-            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+            ticks: { color: 'white' ,font: { family: 'monospace'} },
+            grid: { color: 'rgba(0, 255, 0, 0.1)' }
           },
           x: {
             ticks: { color: 'white' },
-            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+            grid: { color: 'rgba(0, 255, 0, 0.1)' }
+          }
+        },
+        elements: {
+          line: {
+            borderColor: '#00ff00',
+            tension: 0.4,
+            borderWidth: 2
+          },
+          point: {
+            backgroundColor: '#00ff00',
+            borderColor: '#000',
+            borderWidth: 2,
+            radius: 6,
+            hoverRadius: 8
           }
         }
       }

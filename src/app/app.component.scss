@@ -1,0 +1,29 @@
+/* Custom Scrollbar for Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: rgba(0, 20, 0, 0.8);
+    border-radius: 5px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #00ff00;
+    border-radius: 5px;
+    border: 2px solid #001400;
+    box-shadow: 0 0 10px #00ff00;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #00dd00;
+    box-shadow: 0 0 15px #00ff00;
+  }
+  
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #00ff00 rgba(0, 20, 0, 0.8);
+  }
+  

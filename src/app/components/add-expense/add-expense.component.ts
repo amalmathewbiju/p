@@ -15,6 +15,7 @@ import { AuthService } from '../../services/auth.service';
 import { ExpenseService } from '../../services/expense.service';
 import { User } from '../../models/user';
 import { Expense } from '../../models/expense';
+import { LoadingService } from '../../services/loading.service';
 
 @Component({
   selector: 'app-add-expense',
@@ -30,6 +31,7 @@ export class AddExpenseComponent implements OnInit{
     private dialogRef: MatDialogRef<AddExpenseComponent>,
     private snackbar: MatSnackBar,
     private authService : AuthService,
+    private loadingService: LoadingService,
     private expenseService : ExpenseService,
     @Inject(MAT_DIALOG_DATA) public data: {categories: string[]}){
 
@@ -57,6 +59,7 @@ export class AddExpenseComponent implements OnInit{
   
   onSubmit(): void {
     if (this.expenseForm.valid) {
+      this.loadingService.show();
       const currentUser = this.authService.getCurrentUser() as User;
       const selectedDate = this.expenseForm.get('useCurrentDate')?.value? (new Date().toISOString()) : (new Date(this.expenseForm.get('date')?.value).toISOString()) 
       const expenseData: Expense = {
@@ -69,14 +72,21 @@ export class AddExpenseComponent implements OnInit{
         date: selectedDate
       };
   
-      this.expenseService.addExpense(currentUser.id!, expenseData).subscribe(() => {
-        this.dialogRef.close(); 
-        this.snackbar.open('Expense added successfully', 'Close', {
-          duration: 3000,
-          horizontalPosition: 'center',
-          verticalPosition: 'top',
-          panelClass: ['success-snackbar']
-        });
+      this.expenseService.addExpense(currentUser.id!, expenseData).subscribe({
+        next: ()=>{
+          this.dialogRef.close(); 
+          this.loadingService.hide();
+          this.snackbar.open('Expense added successfully', 'Close', {
+            duration: 3000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+            panelClass: ['success-snackbar']
+          });
+        },
+        error: ()=>{
+          this.loadingService.hide();
+        }
+
       });
     }
   }

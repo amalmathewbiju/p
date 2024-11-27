@@ -20,6 +20,7 @@ import { NotFoundComponent } from './components/not-found/not-found.component';
 import { MatCardModule } from '@angular/material/card';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatMenuModule } from '@angular/material/menu';
 import { CommonModule } from '@angular/common';
@@ -32,6 +33,10 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { AddExpenseComponent } from './components/add-expense/add-expense.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
+import { MatrixRainComponent } from './components/matrix-rain/matrix-rain.component';
+import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
+import { LoadingInterceptor } from './interceptors/loading.interceptor';
+import { DeleteConfirmationComponent } from './components/delete-confirmation/delete-confirmation.component';
 
 const angularMaterials = [
   MatCardModule,
@@ -50,7 +55,8 @@ const angularMaterials = [
   MatMenuModule,
   MatDatepickerModule,
   MatNativeDateModule,
-  MatSlideToggleModule
+  MatSlideToggleModule,
+  MatProgressSpinnerModule
 ]
 
 @NgModule({
@@ -61,7 +67,10 @@ const angularMaterials = [
     NotFoundComponent,
     DashboardComponent,
     AddExpenseComponent,
-    NavbarComponent
+    NavbarComponent,
+    MatrixRainComponent,
+    LoadingSpinnerComponent,
+    DeleteConfirmationComponent
   ],
   imports: [
     BrowserModule,
@@ -84,6 +93,11 @@ const angularMaterials = [
     // {
     //   provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true
     // }
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: LoadingInterceptor,
+      multi: true
+    }
   ],
   bootstrap: [AppComponent]
 })

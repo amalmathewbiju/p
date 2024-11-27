@@ -1,0 +1,35 @@
+.delete-dialog {
+    background: rgba(0, 10, 0, 0.9);
+    color: #00ff00;
+    padding: 20px;
+    border: 1px solid #00ff00;
+    box-shadow: 0 0 20px #00ff00;
+  }
+
+  h2 {
+    color: #00ff00;
+    font-family: monospace;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px #00ff00;
+  }
+
+  p {
+    font-family: monospace;
+    font-size: 16px;
+  }
+
+  button {
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    margin: 0 10px;
+    font-family: monospace;
+    
+    &:hover {
+      background: #00ff00;
+      color: black;
+    }
+  }
+
+  .confirm-btn {
+    background: rgba(255, 0, 0, 0.2);
+  }
