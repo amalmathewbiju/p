@@ -32,6 +32,7 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { AddExpenseComponent } from './components/add-expense/add-expense.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
+import { MatrixRainComponent } from './components/matrix-rain/matrix-rain.component';
 
 const angularMaterials = [
   MatCardModule,
@@ -61,7 +62,8 @@ const angularMaterials = [
     NotFoundComponent,
     DashboardComponent,
     AddExpenseComponent,
-    NavbarComponent
+    NavbarComponent,
+    MatrixRainComponent
   ],
   imports: [
     BrowserModule,
