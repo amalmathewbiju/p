@@ -1,0 +1,84 @@
+.register-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-image: url("../../../../public/nick-moon.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+.register-card{
+    max-width: 500px;
+    width: 90%;
+    padding: 2rem;
+    backdrop-filter: blur(8px);
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.full-width {
+    width: 100%;
+    margin-bottom: 1.25rem;
+}
+
+mat-card-header {
+    margin-bottom: 1.5rem;
+}
+
+mat-card-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #f8f8f8;
+}
+
+mat-card-footer {
+    color: #f8f8f8;
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 1rem;
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+    a{
+        color: #f8f8f8;
+    }
+    a:hover {
+        opacity: 1;
+        cursor: pointer;
+        text-decoration: underline;
+    }
+}
+
+button[type="submit"]{
+    margin-top: 1rem;
+    padding: 1.75rem;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: transform 0.2s ease;
+
+    &:not(:disabled):hover {
+        transform: translateY(-2px);
+    }
+}
+
+::ng-deep {
+    .mat-form-field-appearance-outline .mat-form-field-outline {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .mat-form-field-label {
+        color: rgba(255, 255, 255, 0.7) !important;
+    }
+
+    .mat-input-element {
+        color: white !important;
+    }
+
+    .mat-icon {
+        color: rgba(255, 255, 255, 0.7);
+    }
+}
