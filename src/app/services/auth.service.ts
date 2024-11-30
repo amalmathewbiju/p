@@ -1,102 +1,108 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { JwtHelperService } from '@auth0/angular-jwt';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, catchError, Observable, tap, throwError } from 'rxjs';
 import { User } from '../models/user';
-import { BehaviorSubject, catchError, delay, map, Observable, tap, throwError } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { Router } from '@angular/router';
 
-
-// export interface AuthResponse {
-//   token: string;
-//   user: User;
-//   message: string;
-// }
-
+interface AuthResponse {
+  token: string;
+  user: User;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private apiUrl = `${environment.apiUrl}/auth`;
+  private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromStorage());
+  private tokenKey = 'token';
 
-  private apiUrl = "http://localhost:3000/users";
+  constructor(private http: HttpClient,
+    private router: Router
+  ) { this.validateStoredToken(); }
 
-  // private jwtHelper = new JwtHelperService();
-  // private tokenSubject = new BehaviorSubject<string | null>(null);
+  private getUserFromStorage(): User | null {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
+  }
 
-  private currentUserSubject = new BehaviorSubject<User | null>(null);
-
-  currentUser$ = this.currentUserSubject.asObservable();
-
-  // token$ = this.tokenSubject.asObservable();
+  private isTokenExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1])); // Decode JWT payload
+      return payload.exp * 1000 < Date.now(); // Check expiration
+    } catch (e) {
+      return true; // Treat invalid tokens as expired
+    }
+  }
   
-  constructor(private http: HttpClient) { 
-    this.loadStoredAuth();
-  }
-  registerUser(userData: User) {
-    const userWithExpenses = {
-      ...userData,expenses: []
-    }
-    return this.http.post<User>(`${this.apiUrl}`, userWithExpenses).pipe(
-      map((response) => {
-        this.storeUser(response);
-        return response;
-      }),
-      catchError((error) => {
-        console.error('Registration error:', error);
-        return throwError(() => new Error('Failed to register user'));
-      })
-      ,delay(2000));
-  }
-
-  login(credentials: {email:string,password:string}){
-    return this.http.get<User[]>(`${this.apiUrl}?email=${credentials.email}`).pipe(
-      map( (users)=>{
-        const user = users[0];
-        if(user.email === credentials.email && user.password === credentials.password){
-          this.storeUser(user);
-          return user;
-        }
-        else{
-          throw new Error('Invalid email or password');
-        }
-      }),
-      catchError((error)=>{
-        console.log('Login error: ',error);
-        return throwError(()=>new Error('Login Failed'))
-      })
-    ,delay(1500))
-  }
-
-  logout(){
-    return new Observable(observer => {
-      setTimeout(() => {
-        localStorage.removeItem('user');
-        this.currentUserSubject.next(null);
-        observer.next(true);
-        observer.complete();
-      }, 1000); 
-    });
-  }
-
-  private storeUser(user: User): void {
-    localStorage.setItem('user', JSON.stringify(user));
-    this.currentUserSubject.next(user);
-  }
-
-  private loadStoredAuth(): void {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        this.currentUserSubject.next(user);
-      } catch {
-        this.logout();
-      }
+  private validateStoredToken() {
+    const token = this.authToken;
+    if (token && this.isTokenExpired(token)) {
+      console.warn('Token has expired');
+      this.logout();
     }
   }
+  
+  
 
-  getCurrentUser(): User {
-    const userString = localStorage.getItem('user');
-    return userString ? JSON.parse(userString) : null;
+  private setAuthData(response: AuthResponse) {
+    localStorage.setItem(this.tokenKey, response.token);
+    localStorage.setItem('user', JSON.stringify(response.user));
+    this.currentUserSubject.next(response.user);
   }
+
+  get currentUser() {
+    return this.currentUserSubject.value;
+  }
+
+
+  isAuthenticated(): boolean {
+    return !!(this.authToken && this.currentUser);
+  }
+
+
+
+  get authToken(): string {
+    const token = localStorage.getItem(this.tokenKey);
+    return token || '';
+  }
+
+  checkAuthStatus(): boolean {
+    const token = this.authToken;
+    const user = this.currentUser;
+    return !!(token && user && !this.isTokenExpired(token));
+  }
+  
+
+
+
+  login(credentials: { email: string; password: string }): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
+      tap((response: AuthResponse) => {
+        this.setAuthData(response);
+      })
+    );
+  }
+  
+
+
+
+registerUser(user: User): Observable<AuthResponse> {
+  return this.http.post<AuthResponse>(`${this.apiUrl}/register`, user).pipe(
+    tap((response: AuthResponse) => {
+      this.setAuthData(response);
+    })
+  );
+}
+
+
+
+logout(): void {
+  localStorage.clear();
+  this.currentUserSubject.next(null);
+  this.router.navigate(['/login']);
+}
+
 
 }

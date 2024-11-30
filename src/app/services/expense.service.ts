@@ -1,95 +1,29 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { Expense } from '../models/expense';
-import { BehaviorSubject, delay, map, switchMap } from 'rxjs';
-import { User } from '../models/user';
-
-
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
-
-
 export class ExpenseService {
 
-  private apiUrl = 'http://localhost:3000/users';
+  private apiUrl = `${environment.apiUrl}/expenses`;  // Updated URL path
 
-
-  constructor(private http: HttpClient) { }
-
-  getExpenses(userId: string | undefined){
-    return this.http.get<any>(`${this.apiUrl}/${userId}`).pipe(
-      map(user => user.expenses || [])
-    );  }
-
-  addExpense(userId: string, expense: Expense) {
-      return this.http.get<User>(`${this.apiUrl}/${userId}`).pipe(
-        switchMap(user => {
-          const currentExpenses = user.expenses || [];
-
-          const updatedExpenses = [...currentExpenses, {
-            id: expense.id,
-            userId: expense.userId,
-            category: expense.category,
-            amount: expense.amount,
-            description: expense.description,
-            type: expense.type,
-            date: expense.date    
-          }]
-
-          return this.http.patch(`${this.apiUrl}/${userId}`, {
-            expenses: updatedExpenses
-          });
-        })
-      ,delay(1500));
-    }
-
-  updateExpense(expense: Expense){
-    return this.http.put<Expense>(`${this.apiUrl}/${expense.id}`,expense)
+  constructor(private http: HttpClient) {}
+  
+  getExpenses(): Observable<Expense[]> {
+    return this.http.get<Expense[]>(`${this.apiUrl}/me`);  // Get user-specific expenses
   }
 
-  deleteExpense(userId: string, expenseId: number) {
-    return this.http.get<User>(`${this.apiUrl}/${userId}`).pipe(
-      switchMap(user => {
-        const currentExpenses = user.expenses || [];
-        const updatedExpenses = currentExpenses.filter(exp => exp.id !== expenseId);
-        return this.http.patch<User>(`${this.apiUrl}/${userId}`, {
-          expenses: updatedExpenses
-        });
-      })
-      ,delay(1500));
+  addExpense(expense: Expense): Observable<Expense> {
+    return this.http.post<Expense>(this.apiUrl, expense);
   }
 
-  getExpenseByCategory(userId: string) {
-    return this.getExpenses(userId).pipe(
-      map((expenses : Expense[]) => 
-        expenses.reduce((acc, expense) => {
-          acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
-          return acc;
-        }, {} as Record<string, number>)
-      )
-    );
+  deleteExpense(expenseId: string): Observable<void> {  // Updated to string type for MongoDB ObjectId
+    return this.http.delete<void>(`${this.apiUrl}/${expenseId}`);
   }
 
-  getMonthlyExpenses(userId: string) {
-    return this.getExpenses(userId).pipe(
-      map((expenses : Expense[]) => 
-        expenses.reduce((acc, expense) => {
-          const month = new Date(expense.date).toLocaleString('default', { month: 'long' });
-          acc[month] = (acc[month] || 0) + expense.amount;
-          return acc;
-        }, {} as Record<string, number>)
-      )
-    );
-  }
-
-  getTotalExpenses(userId: string) {
-    return this.getExpenses(userId).pipe(
-      map((expenses:Expense[]) => 
-        expenses.reduce((total, expense) => total + expense.amount, 0)
-      )
-    );
-  }
 
 }

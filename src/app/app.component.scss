@@ -1,4 +1,25 @@
 /* Custom Scrollbar for Webkit browsers (Chrome, Safari, Edge) */
+
+
+  $matrix-green-primary: #00ff41;
+  $matrix-green-secondary: rgba(0, 255, 65, 0.7);
+  $matrix-background-dark: #0a0a0a;
+  $matrix-background-light: #111;
+  $matrix-text-primary: #00ff41;
+  $matrix-text-secondary: rgba(0, 255, 65, 0.8);
+  $matrix-border-color: rgba(0, 255, 65, 0.3);
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Share Tech Mono', monospace;
+  color: $matrix-text-primary;
+}
+
+p {
+  font-size: 16px;
+  color: $matrix-text-secondary;
+}
+
+
 ::-webkit-scrollbar {
     width: 10px;
     height: 10px;

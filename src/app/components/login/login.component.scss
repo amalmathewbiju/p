@@ -1,4 +1,7 @@
+
+
 .login-container {
+  font-family: 'Share Tech Mono';
   display: flex;
   justify-content: center;
   align-items: center;
@@ -77,6 +80,7 @@ button[type="submit"] {
   }
 
   .mat-input-element {
+      font-family: 'Share Tech Mono';
       color: white !important;
   }
 

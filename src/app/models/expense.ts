@@ -1,10 +1,9 @@
-
 export interface Expense {
-    id?: number;
-    userId: string;
-    description: string;
-    amount: number;
-    category: string;
-    date: string;
-    type : 'credit' | 'debit',
-  }
+  _id?: string;
+  description: string;
+  amount: number;
+  category: string;
+  type: 'credit' | 'debit';
+  date: Date;
+  userId?: string;
+}

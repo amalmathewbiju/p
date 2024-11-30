@@ -18,7 +18,7 @@ import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { NotFoundComponent } from './components/not-found/not-found.component';
 import { MatCardModule } from '@angular/material/card';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -26,8 +26,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { HTTP_INTERCEPTORS, provideHttpClient } from '@angular/common/http';
-// import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { authInterceptor } from './interceptors/auth.interceptor';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
@@ -75,10 +75,14 @@ const angularMaterials = [
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
+    FormsModule,
     JwtModule.forRoot({
       config: {
         tokenGetter: () => localStorage.getItem('token'),
-        allowedDomains: ['localhost:3000']
+        allowedDomains: ['localhost:3000'],
+        headerName: 'Authorization',
+        authScheme: 'Bearer ',
+        throwNoTokenError: true
       }
     }),
     AppRoutingModule,
@@ -90,9 +94,9 @@ const angularMaterials = [
     provideAnimationsAsync(),
     provideHttpClient(),
     provideCharts(withDefaultRegisterables()),
-    // {
-    //   provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true
-    // }
+    provideHttpClient(
+      withInterceptors([authInterceptor])
+    ),
     {
       provide: HTTP_INTERCEPTORS,
       useClass: LoadingInterceptor,

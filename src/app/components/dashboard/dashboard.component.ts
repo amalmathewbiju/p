@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Expense } from '../../models/expense';
 import { ExpenseService } from '../../services/expense.service';
 import { AuthService } from '../../services/auth.service';
@@ -11,19 +11,20 @@ import { MatDialog } from '@angular/material/dialog';
 import { User } from '../../models/user';
 import { LoadingService } from '../../services/loading.service';
 import { DeleteConfirmationComponent } from '../delete-confirmation/delete-confirmation.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent implements OnInit, AfterViewInit {
+export class DashboardComponent implements OnInit, AfterViewInit,OnDestroy {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   expenses: Expense[] = [];
   dataSource = new MatTableDataSource<Expense>();
-  displayedColumns = ['date', 'category', 'description', 'amount', 'actions'];
+  displayedColumns = ['date', 'category', 'description', 'type' , 'amount', 'actions'];
   categories = ['Food', 'Transport', 'Entertainment', 'Shopping', 'Bills', 'Others'];
   
   totalExpenses = 0;
@@ -32,15 +33,31 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   categoryChart: any;
   monthlyChart: any;
 
+  timeRangeOptions = [
+    { label: 'Last 3 Months', value: 3 },
+    { label: 'Last 6 Months', value: 6 },
+    { label: 'Last 12 Months', value: 12 },
+    { label: 'All Time', value: 0 }
+  ];
+  selectedTimeRange = 6; 
+
   constructor(
     private expenseService: ExpenseService,
     private authService: AuthService,
+    private router: Router,
     private dialog: MatDialog,
     private loadingService: LoadingService
   ) {}
 
+  
+  ngOnDestroy(): void {
+    window.removeEventListener('resize',this.adjustDisplayedColumns);
+  }
+
   ngOnInit() {
     this.loadExpenseData();
+    this.adjustDisplayedColumns();
+    window.addEventListener('resize',this.adjustDisplayedColumns.bind(this))
   }
 
   ngAfterViewInit() {
@@ -49,13 +66,22 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   loadExpenseData() {
-    const currentUser = this.authService.getCurrentUser();
+    const currentUser = this.authService.currentUser;
     if (currentUser?.id) {
-      this.expenseService.getExpenses(currentUser.id).subscribe(expenses => {
-        this.expenses = expenses;        
-        this.dataSource.data = expenses;
-        this.calculateStatistics();
-        this.initializeCharts();
+      this.expenseService.getExpenses().subscribe({
+        next: (expenses) => {
+          this.expenses = this.filterExpensesByTimeRange(expenses);        
+          this.dataSource.data = expenses;
+          this.calculateStatistics();
+          this.initializeCharts();
+        },
+        error: (error) => {
+          console.error('Expense Fetch Error:', error);
+          if (error.status === 401) {
+            this.authService.logout();
+            this.router.navigate(['/login']);
+          }
+        }
       });
     }
   }
@@ -67,35 +93,61 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   
     dialogRef.afterClosed().subscribe(result => {
-      this.loadExpenseData(); // Simply reload the data
+      if (result) {
+        this.expenseService.getExpenses().subscribe({
+          next: (expenses) => {
+            this.expenses = expenses;        
+            this.dataSource.data = expenses;
+            this.calculateStatistics();
+            this.initializeCharts();
+          },
+          error: (error) => {
+            if (error.status === 401) {
+              this.authService.logout();
+              this.router.navigate(['/login']);
+            }
+          }
+        });
+      }
     });
   }
   
 
-  deleteExpense(expenseId: number) {
+  deleteExpense(expenseId: string) {  // Changed to string for MongoDB ObjectId
     const dialogRef = this.dialog.open(DeleteConfirmationComponent, {
       width: '400px',
       panelClass: 'matrix-dialog'
     });
-    dialogRef.afterClosed().subscribe(res =>{
-      if(res){
+    
+    dialogRef.afterClosed().subscribe(res => {
+      if(res && expenseId) {
         this.loadingService.show();
-        const currentUser = this.authService.getCurrentUser();
-        if (currentUser?.id) {
-          this.expenseService.deleteExpense(currentUser.id, expenseId).subscribe({
-            next: ()=>{
-              this.loadExpenseData();
-              this.loadingService.hide();
-            },
-            error: ()=>{
-              this.loadingService.hide();
-            }
-          });
-        }
+        this.expenseService.deleteExpense(expenseId).subscribe({
+          next: () => {
+            // Refresh data after successful deletion
+            this.loadExpenseData();
+            this.loadingService.hide();
+          },
+          error: (error) => {
+            console.error('Delete error:', error);
+            this.loadingService.hide();
+          }
+        });
       }
-    })
-
+    });
   }
+
+  private filterExpensesByTimeRange(expenses: Expense[]): Expense[] {
+    if (this.selectedTimeRange === 0) return expenses; // All time
+  
+    const cutoffDate = new Date();
+    cutoffDate.setMonth(cutoffDate.getMonth() - this.selectedTimeRange);
+  
+    return expenses.filter(expense => 
+      new Date(expense.date) >= cutoffDate
+    );
+  }
+  
 
   private calculateStatistics() {
     this.totalExpenses = this.expenses.reduce((sum, exp) => sum + exp.amount, 0);
@@ -125,6 +177,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.createMonthlyChart();
   }
 
+    // New method to adjust displayed columns
+    private adjustDisplayedColumns() {
+      const screenWidth = window.innerWidth;
+      if (screenWidth <= 768) {
+        this.displayedColumns = ['date', 'category', 'amount', 'actions'];
+      } else {
+        this.displayedColumns = ['date', 'category', 'description', 'type', 'amount', 'actions'];
+      }
+    }
+
   private createCategoryChart() {
     const categoryData = this.expenses.reduce((acc, exp) => {
       acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
@@ -146,11 +208,19 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: {
+            left: 10,
+            right: 10,
+            top: 10,
+            bottom: 10
+          }
+        },
         plugins: {
           legend: {
             position: 'right',
-            labels: { color: 'white', font:{ family: 'monospace',size:16},
-          padding: 20 }
+            labels: { color: 'white', font:{ family: 'monospace',size:12},
+          padding: 10 }
           }
         },
         elements: {
@@ -158,17 +228,39 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             borderWidth: 2,
             borderColor: '#000'
           }
+        },parsing:{
+          key: 'value'
         }
       }
     });
   }
 
   private createMonthlyChart() {
-    const monthlyData = this.expenses.reduce((acc, exp) => {
-      const month = new Date(exp.date).toLocaleString('default', { month: 'short' });
-      acc[month] = (acc[month] || 0) + exp.amount;
-      return acc;
-    }, {} as Record<string, number>);
+
+    // const monthlyData = this.expenses.reduce((acc, exp) => {
+    //   const month = new Date(exp.date).toLocaleString('default', { month: 'short' });
+    //   acc[month] = (acc[month] || 0) + exp.amount;
+    //   return acc;
+    // }, {} as Record<string, number>);
+
+    const sortedExpenses = this.expenses.sort((a,b)=> new Date(a.date).getTime() - new Date(b.date).getTime())
+
+    const monthlyData: Record<string,number> = {};
+
+    const monthCount = this.selectedTimeRange || 12;
+    for (let i = monthCount - 1 ; i >= 0; i--){
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const  monthKey = date.toLocaleString('default', { month: 'short' });
+
+      const monthExpenses = sortedExpenses.filter(exp=>{
+        const expDate = new Date(exp.date)
+        return expDate.getMonth() === date.getMonth() && expDate.getFullYear() === date.getFullYear();
+      })
+
+      monthlyData[monthKey] = monthExpenses.reduce((sum,exp)=> sum + exp.amount, 0)
+
+    }
 
     const ctx = document.getElementById('monthlyChart') as HTMLCanvasElement;
     this.monthlyChart = new Chart(ctx, {
@@ -189,18 +281,25 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            labels: { color: 'white', font:{family: 'monospace', size:18} }
+            display: false,
+            labels: { color: 'white', font:{family: 'monospace', size:12} }
           }
         },
         scales: {
           y: {
             beginAtZero: true,
-            ticks: { color: 'white' ,font: { family: 'monospace'} },
+            ticks: { color: 'white' ,font: { family: 'monospace',size:10} ,maxTicksLimit :5}
+            ,
             grid: { color: 'rgba(0, 255, 0, 0.1)' }
           },
           x: {
-            ticks: { color: 'white' },
-            grid: { color: 'rgba(0, 255, 0, 0.1)' }
+            reverse: true,
+            ticks: { color: 'white',font: { 
+              family: 'monospace', 
+              size: 10 // Smaller font size for mobile
+            },maxTicksLimit: 4 },
+            
+            grid: { display: false,color: 'rgba(0, 255, 0, 0.1)' }
           }
         },
         elements: {
@@ -216,6 +315,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             radius: 6,
             hoverRadius: 8
           }
+        },devicePixelRatio: 1,
+        interaction:{
+          mode: 'nearest',
+          axis: 'x',
+          intersect: false
         }
       }
     });

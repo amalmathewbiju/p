@@ -32,30 +32,36 @@ export class LoginComponent {
 
 
   onSubmit() {
+
     if (this.loginForm.valid) {
       this.loadingService.show();
-      const { email ,password } = this.loginForm.value
-      this.authService.login({email,password}).subscribe({
-        next: (response)=>{
-          this.snackbar.open('Login succesfull !', 'Close',{
-            duration : 3000,
-            horizontalPosition: 'center',
-            verticalPosition : 'top'
-          })
-          this.router.navigate(['/dashboard']);
+      const { email, password } = this.loginForm.value;
+      
+      this.authService.login({email, password}).subscribe({
+        next: (response) => {
           this.loadingService.hide();
+          this.snackbar.open('Login successful!', 'Close', {
+            duration: 3000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top'
+          });
+          // Add a slight delay before navigation
+          setTimeout(() => {
+            this.router.navigate(['/dashboard']);
+          }, 100);
         },
-        error: (error)=>{
-          this.snackbar.open('Login Failed! invalid credentials.','Close',{
+        error: (error) => {
+          this.loadingService.hide();
+          this.snackbar.open('Login Failed! Invalid credentials.', 'Close', {
             duration: 3000,
             verticalPosition: 'top',
             horizontalPosition: 'center'
-          })
-          this.loadingService.hide();
+          });
         }
-      })
+      });
     }
   }
+  
 
   getErrorMessage(field: string): string {
     if (this.loginForm.get(field)?.hasError('required')) {

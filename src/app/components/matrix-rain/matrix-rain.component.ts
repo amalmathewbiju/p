@@ -1,55 +1,72 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild, HostListener } from '@angular/core';
 
 @Component({
   selector: 'app-matrix-rain',
-  templateUrl: './matrix-rain.component.html',
-  styleUrl: './matrix-rain.component.scss'
+  templateUrl: 'matrix-rain.component.html',
+  styleUrls: ['./matrix-rain.component.scss'],
 })
-export class MatrixRainComponent implements OnInit{
+export class MatrixRainComponent implements OnInit {
+  @ViewChild('matrixCanvas', { static: true }) canvas!: ElementRef<HTMLCanvasElement>;
+  @Input() textColor: string = '#0F0';
+  @Input() backgroundOpacity: number = 0.04;
 
-
-  @ViewChild('matrixCanvas',{static:true})canvas!:ElementRef<HTMLCanvasElement>;
-
-
+  private animationId!: number;
+  private fontSize = 14;
+  private drops: number[] = [];
+  private characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%".split("");
 
   ngOnInit() {
+    this.initializeCanvas();
+    this.startAnimation();
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    this.initializeCanvas();
+  }
+
+  private initializeCanvas() {
     const canvas = this.canvas.nativeElement;
     const ctx = canvas.getContext('2d')!;
-    
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%";
-    const characters = matrix.split("");
-    const fontSize = 14;
-    const columns = canvas.width / fontSize;
-    const drops: number[] = [];
+    this.fontSize = Math.max(14, canvas.width / 100);
+    const columns = Math.floor(canvas.width / this.fontSize);
+    this.drops = Array(columns).fill(1);
 
-    for (let x = 0; x < columns; x++) {
-      drops[x] = 1;
-    }
+    ctx.fillStyle = `rgba(0, 0, 0, ${this.backgroundOpacity})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
 
-    function draw() {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#0F0';
-      ctx.font = fontSize + 'px monospace';
+  private draw() {
+    const canvas = this.canvas.nativeElement;
+    const ctx = canvas.getContext('2d')!;
 
-      for (let i = 0; i < drops.length; i++) {
-        const text = characters[Math.floor(Math.random() * characters.length)];
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i]++;
+    ctx.fillStyle = `rgba(0, 0, 0, ${this.backgroundOpacity})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = this.textColor;
+    ctx.font = this.fontSize + 'px monospace';
+
+    for (let i = 0; i < this.drops.length; i++) {
+      const text = this.characters[Math.floor(Math.random() * this.characters.length)];
+      ctx.fillText(text, i * this.fontSize, this.drops[i] * this.fontSize);
+
+      if (this.drops[i] * this.fontSize > canvas.height && Math.random() > 0.975) {
+        this.drops[i] = 0;
       }
+      this.drops[i]++;
     }
 
-    setInterval(draw, 35);
+    this.animationId = requestAnimationFrame(() => this.draw());
+  }
 
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
+  private startAnimation() {
+    this.animationId = requestAnimationFrame(() => this.draw());
+  }
+
+  ngOnDestroy() {
+    cancelAnimationFrame(this.animationId);
   }
 }

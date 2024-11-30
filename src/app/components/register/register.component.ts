@@ -14,7 +14,7 @@ export class RegisterComponent {
 
   registerForm: FormGroup;
   hidePassword = true;
-  hideConfirmPassword = false;
+  hideConfirmPassword = true;
 
   constructor(
     private fb: FormBuilder,

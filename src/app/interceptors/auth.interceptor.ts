@@ -1,23 +1,36 @@
-// import { Injectable } from '@angular/core';
-// import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
-// import { Observable } from 'rxjs';
-// import { AuthService } from '../services/auth.service';
+import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { catchError } from 'rxjs';
 
-// @Injectable()
-// export class AuthInterceptor implements HttpInterceptor {
-//   constructor(private authService: AuthService) {}
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const router = inject(Router);
+  const token = localStorage.getItem('token');
+  
+  // Skip token for auth endpoints
+  if (req.url.includes('/api/auth/')) {
+    return next(req);
+  }
 
-//   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-//     const token = this.authService.getToken();
+  // Add token to other requests
+  if (token) {
+    const clonedRequest = req.clone({
+      setHeaders: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
     
-//     if (token) {
-//       request = request.clone({
-//         setHeaders: {
-//           Authorization: `Bearer ${token}`
-//         }
-//       });
-//     }
-    
-//     return next.handle(request);
-//   }
-// }
+    return next(clonedRequest).pipe(
+      catchError(error => {
+        if (error.status === 401) {
+          localStorage.clear();
+          router.navigate(['/login']);
+        }
+        throw error;
+      })
+    );
+  }
+
+  return next(req);
+};

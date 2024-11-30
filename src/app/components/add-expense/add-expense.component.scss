@@ -1,24 +1,112 @@
+// Matrix theme variables
+$matrix-green-primary: #00ff41;
+$matrix-green-secondary: rgba(0, 255, 65, 0.7);
+$matrix-background-dark: #0a0a0a;
+$matrix-background-light: #111;
+$matrix-text-primary: #00ff41;
+$matrix-border-color: rgba(0, 255, 65, 0.3);
+
 .dialog-container {
-  padding: 20px;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  color: white;
+  padding: 24px;
+  background: linear-gradient(135deg, $matrix-background-dark 0%, $matrix-background-light 100%);
+  color: $matrix-text-primary;
+  border: 1px solid $matrix-border-color;
+  border-radius: 8px;
+  font-family: 'Share Tech Mono', monospace;
+
+  h2 {
+    color: $matrix-green-primary;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+  }
 }
-mat-form-field {
-  width: 100%;
-  margin-bottom: 15px;
-}
+
 ::ng-deep {
-  .mat-form-field-appearance-outline .mat-form-field-outline {
-    color: rgba(255, 255, 255, 0.3);
+  .mat-form-field {
+    width: 100%;
+    margin-bottom: 16px;
+
+    .mat-form-field-wrapper {
+      background: rgba(0, 255, 65, 0.05);
+      border-radius: 4px;
+    }
+
+    .mat-form-field-outline {
+      color: $matrix-border-color;
+    }
+
+    .mat-form-field-label {
+      color: $matrix-green-secondary !important;
+    }
+
+    input, textarea, .mat-select-value-text {
+      color: $matrix-text-primary !important;
+    }
+
+    .mat-select-arrow {
+      color: $matrix-green-primary;
+    }
   }
-  .mat-form-field-label {
-    color: rgba(255, 255, 255, 0.6) !important;
+
+  .mat-option {
+    background: $matrix-background-dark;
+    color: $matrix-text-primary;
+
+    &:hover {
+      background: rgba(0, 255, 65, 0.1);
+    }
   }
-  .mat-select-value, 
-  .mat-select-arrow {
-    color: white;
+}
+
+.date-selection {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 0;
+
+  .mat-slide-toggle {
+    .mat-slide-toggle-bar {
+      background-color: $matrix-border-color;
+    }
+
+    &.mat-checked {
+      .mat-slide-toggle-thumb {
+        background-color: $matrix-green-primary;
+      }
+    }
   }
-  input, textarea {
-    color: white !important;
+}
+
+mat-dialog-actions {
+  margin-top: 24px;
+  gap: 16px;
+
+  button {
+    font-family: 'Share Tech Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+
+    &.mat-raised-button {
+      background-color: $matrix-green-primary;
+      color: $matrix-background-dark;
+
+      &:hover {
+        background-color: $matrix-green-secondary;
+      }
+
+      &:disabled {
+        background-color: rgba(0, 255, 65, 0.3);
+      }
+    }
+
+    &.mat-button {
+      color: $matrix-green-secondary;
+      border: 1px solid $matrix-border-color;
+
+      &:hover {
+        background-color: rgba(0, 255, 65, 0.1);
+      }
+    }
   }
 }
