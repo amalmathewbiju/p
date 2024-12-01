@@ -23,33 +23,33 @@ $matrix-border-color: rgba(0, 255, 65, 0.3);
 }
 
 ::ng-deep {
-  .mat-form-field {
+  mat-form-field {
     width: 100%;
     margin-bottom: 16px;
 
-    .mat-form-field-wrapper {
+    mat-form-field-wrapper {
       background: rgba(0, 255, 65, 0.05);
       border-radius: 4px;
     }
 
-    .mat-form-field-outline {
+    mat-form-field-outline {
       color: $matrix-border-color;
     }
 
-    .mat-form-field-label {
+    mat-form-field-label {
       color: $matrix-green-secondary !important;
     }
 
-    input, textarea, .mat-select-value-text {
+    input, textarea, mat-select-value-text {
       color: $matrix-text-primary !important;
     }
 
-    .mat-select-arrow {
+    mat-select-arrow {
       color: $matrix-green-primary;
     }
   }
 
-  .mat-option {
+  mat-option {
     background: $matrix-background-dark;
     color: $matrix-text-primary;
 
@@ -65,13 +65,13 @@ $matrix-border-color: rgba(0, 255, 65, 0.3);
   gap: 16px;
   margin: 16px 0;
 
-  .mat-slide-toggle {
-    .mat-slide-toggle-bar {
+  mat-slide-toggle {
+    mat-slide-toggle-bar {
       background-color: $matrix-border-color;
     }
 
-    &.mat-checked {
-      .mat-slide-toggle-thumb {
+    &mat-checked {
+      mat-slide-toggle-thumb {
         background-color: $matrix-green-primary;
       }
     }
@@ -87,7 +87,7 @@ mat-dialog-actions {
     text-transform: uppercase;
     letter-spacing: 1px;
 
-    &.mat-raised-button {
+    &mat-raised-button {
       background-color: $matrix-green-primary;
       color: $matrix-background-dark;
 
@@ -100,7 +100,7 @@ mat-dialog-actions {
       }
     }
 
-    &.mat-button {
+    &mat-button {
       color: $matrix-green-secondary;
       border: 1px solid $matrix-border-color;
 
